@@ -1,22 +1,11 @@
-"use strict"
-
-function CreateVirtualComponent (
-        type,
-        props, // Атрибуты этого компонента
-        children     // Массив детей этого компонента
-    ) {
-        console.debug("Create virtual component ", type);
-        const e = {type: type, props: props || {}};
-        e.props.children = children;
-        return e;
-}
+"use strict";
 
 class DOMcomponentInstance {
     constructor ( virtualComponent ) {
         this._createRootElement(virtualComponent.type);
         console.debug("Create instance component ", this._type);
         Object.keys(virtualComponent.props).filter(attrName=>attrName!="children").forEach(attrName => {
-            this.AppendProperties(attrName, virtualComponent.props[attrName]);
+            this._appendProperties(attrName, virtualComponent.props[attrName]);
         });
         this._appendChildren(virtualComponent.props.children);
     }
@@ -45,7 +34,7 @@ class DOMcomponentInstance {
             return;
         }
         switch(typeof children) {
-             case 'string':
+            case 'string':
                 console.debug(`Append inner html ${children} into ${this.type}`);
                 this._element.innerHTML += children;
                 break;
@@ -74,7 +63,7 @@ class DOMcomponentInstance {
         return this._element;
     }
 
-    AppendProperties(key, value) {
+    _appendProperties(key, value) {
         switch(key) {
             case 'className':
                 const values = value.split(' ');  
@@ -93,6 +82,17 @@ class DOMcomponentInstance {
     }
 }
 
-function Render(element, container) {
+export function Render(element, container) {
     container.appendChild(new DOMcomponentInstance(element).Component);
+}
+
+export function CreateVirtualComponent (
+    type,
+    props, // Атрибуты этого компонента
+    children     // Массив детей этого компонента
+) {
+    console.debug("Create virtual component ", type);
+    const e = {type: type, props: props || {}};
+    e.props.children = children;
+    return e;
 }
