@@ -1,0 +1,27 @@
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.block {
+    height: 250px;
+    width: 200px;
+}
+
+.red {
+    background-color: tomato;
+}
+
+.blue {
+    background-color: skyblue;
+}
+
+.green {
+    background-color: chartreuse;
+}
+
+.redRed {
+    background-color: red
+}
