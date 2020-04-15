@@ -1,10 +1,9 @@
 # learnReact
-# How enybody can write own mini framework
+### How enybody can write own mini framework
 
-# Simple Usage Example
+##Simple Usage Example
 
-
-
+```javascript
 window.onload = ()=> {
     const blockBlue = CreateVirtualComponent(
         'div',
@@ -38,3 +37,4 @@ window.onload = ()=> {
 
     Render(container, document.getElementById("root"));
 };
+```
