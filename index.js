@@ -57,5 +57,5 @@ window.onload = ()=> {
         blockBlue,
     ])
 
-    Render(CreateVirtualComponent('div',null,[container1,containerCopy,container2,container1,container2]), document.getElementById("root"));
+    Render(CreateVirtualComponent('div',null,[container1,container2,container1,container2]), document.getElementById("root"));
 };

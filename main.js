@@ -116,6 +116,7 @@ class VirtualComponent {
     }
 
     render() {
+        this.props._uniqIdentifier = Math.random()*1000000000;
         this.view = new this.viewInterface(this); // Create new dom element
         return this.view.Component;
     }
@@ -126,13 +127,16 @@ class VirtualComponent {
             console.info("Nothing to change in element");
             return this;
         }
+        var isUpdated = false;
         const parentNode = this.view.Component.parentElement;
         for(let i=0; i<parentNode.children.length; i++) {
-            if(parentNode.children[i].isEqualNode(this.view.Component) ) {
-                parentNode.replaceChild(newElement.Component, parentNode.children[i]);    
+            if(parentNode.children[i].getAttribute("_uniqIdentifier") == this.props._uniqIdentifier) {
+                console.log(parentNode.children[i].getAttribute("_uniqIdentifier"));
+                parentNode.replaceChild(newElement.Component, parentNode.children[i]);
+                isUpdated=true;
             }
         }
-        this.view = newElement;
+        if(isUpdated) this.view = newElement;
         return this;
     }
 }
