@@ -116,7 +116,24 @@ class VirtualComponent {
     }
 
     render() {
-        return new this.viewInterface(this).Component; // Create new dom element
+        this.view = new this.viewInterface(this); // Create new dom element
+        return this.view.Component;
+    }
+
+    update() {
+        const newElement = new this.viewInterface(this);
+        if(this.view.Component.isEqualNode(newElement.Component)) {
+            console.info("Nothing to change in element");
+            return this;
+        }
+        const parentNode = this.view.Component.parentElement;
+        for(let i=0; i<parentNode.children.length; i++) {
+            if(parentNode.children[i].isEqualNode(this.view.Component) ) {
+                parentNode.replaceChild(newElement.Component, parentNode.children[i]);    
+            }
+        }
+        this.view = newElement;
+        return this;
     }
 }
 

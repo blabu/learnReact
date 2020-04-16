@@ -46,13 +46,16 @@ window.onload = ()=> {
     const container2 = CreateVirtualComponent('div', {
         className: "container",
         callbacks: {
-            click: e=>console.log(e.target.innerHTML)
+            click: ()=>{
+                container2.props.children.push(blockRed);
+                container2.update();
+            }
         },
     }, [
         blockGreen,
         blockRed,
-        blockBlue
+        blockBlue,
     ])
 
-    Render(CreateVirtualComponent('div',null,[container1, containerCopy, container2,container1,container2]), document.getElementById("root"));
+    Render(CreateVirtualComponent('div',null,[container1,containerCopy,container2,container1,container2]), document.getElementById("root"));
 };
