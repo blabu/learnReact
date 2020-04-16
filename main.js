@@ -1,11 +1,21 @@
 "use strict";
 
-class DOMcomponentInstance {
+class ViewInterface {
+    get Component() {
+        if(this._element === null) {
+            throw "Component did not created";
+        }
+        return this._element;
+    }
+}
+
+class DOMcomponentInstance extends ViewInterface {
     constructor ( virtualComponent ) {
+        super(virtualComponent);
         this._createRootElement(virtualComponent.type);
         console.debug("Create instance component ", this._type);
         Object.keys(virtualComponent.props).filter(attrName=>attrName!="children").forEach(attrName => {
-            this._appendProperties(attrName, virtualComponent.props[attrName]);
+            this._appendProperty(attrName, virtualComponent.props[attrName]);
         });
         this._appendChildren(virtualComponent.props.children);
     }
@@ -13,7 +23,7 @@ class DOMcomponentInstance {
     _createRootElement(componentType) {
         switch(typeof componentType) {
             case 'string':
-                this._type = componentType
+                this._type = componentType.trim();
                 this._element = document.createElement(componentType);
                 break;
             case 'function': 
@@ -46,7 +56,7 @@ class DOMcomponentInstance {
                             this._element.innerHTML += element;
                             return;
                         }
-                        this._element.appendChild(new DOMcomponentInstance(element).Component);
+                        this._element.appendChild(element.render());
                     });
                 } catch(e) {
                     console.warn(e);
@@ -56,14 +66,7 @@ class DOMcomponentInstance {
         }
     }
 
-    get Component() {
-        if(this._element === null) {
-            throw "Component did not created";
-        }
-        return this._element;
-    }
-
-    _appendProperties(key, value) {
+    _appendProperty(key, value) {
         switch(key) {
             case 'className':
                 const values = value.split(' ');  
@@ -71,28 +74,73 @@ class DOMcomponentInstance {
                 this._element.classList.add(...values);
                 break;
             case 'id':
-                this._element.id = value;
+                this._element.id = value.trim();
                 break;
-            case 'callbacks':
+            case 'callbacks': 
+            // argument must be an object:
+            // with key - event name like click or mouseover
+            // and value - function handler for this event
                 Object.keys(value).forEach((eventName)=>{
-                    this._element.addEventListener(eventName, value[eventName]);
+                    this._element.addEventListener(eventName.trim(), value[eventName]);
                 });
                 break;
+                case 'styles': 
+                    //Argument must be an object:
+                    // with keys: styleParameter in camelCase
+                    // value - string style value
+                    const reg = new RegExp(/[A-Z]/,'g');
+                    const allStyles = [];
+                    Object.keys(value).forEach((style)=> {
+                        const styleName = style.replace(reg, str=>"-"+str.toLowerCase())
+                        allStyles.push(`${styleName}:${value[style]}`)
+                    })
+                    this._element.setAttribute("style",allStyles.join(";"))
+                    break;
+            default:
+                this._element.setAttribute(key,value);
         }
     }
 }
 
-export function Render(element, container) {
-    container.appendChild(new DOMcomponentInstance(element).Component);
+let componentCache = new Map()
+
+class VirtualComponent {
+    constructor(    type,         
+                    props,       // Атрибуты этого компонента
+                    children     // Массив детей этого компонента
+    ){
+        this.type = type;
+        this.props = props || {};
+        this.props.children = children;
+        this.viewInterface = DOMcomponentInstance;
+    }
+
+    render() {
+        return new this.viewInterface(this).Component; // Create new dom element
+    }
 }
 
-export function CreateVirtualComponent (
+//export 
+function Render(element, container) {
+    container.appendChild(element.render());
+}
+
+//export 
+function CreateVirtualComponent (
     type,
-    props, // Атрибуты этого компонента
-    children     // Массив детей этого компонента
+    props = {}, // Атрибуты этого компонента
+    children = []     // Массив детей этого компонента
 ) {
-    console.debug("Create virtual component ", type);
-    const e = {type: type, props: props || {}};
-    e.props.children = children;
+    console.debug("Create virtual component ", type, ((props && props.key)?` and key ${props.key}.`:"."));
+    if (props && props.key) {
+        if(componentCache.has(props.key)) {
+            console.debug(`Component ${type} with key ${props.key} finded in cache`);
+            return componentCache.get(props.key);
+        }
+        const e = new VirtualComponent(type,props,children);
+        componentCache.set(props.key, e);
+        return e;
+    }
+    const e = new VirtualComponent(type,props,children);
     return e;
 }

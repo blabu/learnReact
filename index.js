@@ -1,10 +1,11 @@
 //module
-import {CreateVirtualComponent, Render} from './main.js'
+// import {CreateVirtualComponent, Render} from './main.js'
 
 window.onload = ()=> {
     const blockBlue = CreateVirtualComponent(
         'div',
         {
+            key: "blue",
             className: "block blue",
         },
         ["Blue block"]
@@ -12,6 +13,12 @@ window.onload = ()=> {
     const blockRed = CreateVirtualComponent(
         'div',
         {
+            styles: {
+                fontWeight: "bold",
+                fontFamily: "Arial",
+                color: "orange",
+            },
+            key: "red",
             className: "block red",
         },
         ["Red block"]
@@ -19,11 +26,13 @@ window.onload = ()=> {
     const blockGreen = CreateVirtualComponent(
         'div',
         {
+            style:"font-style:italic",
+            key:"green",
             className: "block green",
         },
-        ["Green block"]
+        "Green block"
     );
-    const container = CreateVirtualComponent('div',{className: "container"}, 
+    const container1 = CreateVirtualComponent('div',{key: "container", className: "container"}, 
     [ 
         blockBlue, 
         blockRed, 
@@ -32,5 +41,18 @@ window.onload = ()=> {
         blockRed,
     ]);
 
-    Render(container, document.getElementById("root"));
+    const containerCopy = CreateVirtualComponent('',{key:"container"});
+
+    const container2 = CreateVirtualComponent('div', {
+        className: "container",
+        callbacks: {
+            click: e=>console.log(e.target.innerHTML)
+        },
+    }, [
+        blockGreen,
+        blockRed,
+        blockBlue
+    ])
+
+    Render(CreateVirtualComponent('div',null,[container1, containerCopy, container2,container1,container2]), document.getElementById("root"));
 };

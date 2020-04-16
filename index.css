@@ -6,8 +6,16 @@
 }
 
 .block {
-    height: 250px;
+    height: 200px;
     width: 200px;
+    border: 1px solid black;
+    box-shadow: 2px 2px 10px;
+    margin: 1em;
+}
+
+.block:hover {
+    height: 220px;
+    width: 220px;
 }
 
 .red {
