@@ -14,6 +14,13 @@
     margin: 1em;
 }
 
+.wrap {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
 .block:hover {
     height: 220px;
     width: 220px;

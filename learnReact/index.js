@@ -1,6 +1,15 @@
 //module
 // import {CreateVirtualComponent, Render} from './main.js'
 
+//Можно создавать свои кастомные компоненты
+class component extends VirtualComponent {
+    constructor(...children) {
+        super("div", {
+            className: "wrap",
+        }, children);
+    }
+}
+
 window.onload = ()=> {
     const blockBlue = CreateVirtualComponent(
         'div',
@@ -41,21 +50,25 @@ window.onload = ()=> {
         blockRed,
     ]);
 
-    const containerCopy = CreateVirtualComponent('',{key:"container"});
+    const div = CreateVirtualComponent('div',{className: "container"}, [
+        CreateVirtualComponent('div', {
+            className: "wrap",
+            callbacks: {
+                click: ()=>{
+                    div.props.children.push(blockRed);
+                    div.update();
+                }
+            },
+        }, [
+            blockGreen,
+            blockRed,
+            blockBlue,
+        ]),
+    ]);
 
-    const container2 = CreateVirtualComponent('div', {
-        className: "container",
-        callbacks: {
-            click: ()=>{
-                container2.props.children.push(blockRed);
-                container2.update();
-            }
-        },
-    }, [
-        blockGreen,
-        blockRed,
-        blockBlue,
-    ])
+    const s = new component("Hello world", blockGreen);
 
-    Render(CreateVirtualComponent('div',null,[container1,container2,container1,container2]), document.getElementById("root"));
+    Render(new component(CreateVirtualComponent('div',null,[container1,container1,div]),
+    s,
+    new component(null)), document.getElementById("root"));
 };

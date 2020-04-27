@@ -1,5 +1,6 @@
 "use strict";
 
+// Интерфейс создания виджетов (реальных компонентов) для отрисовки 
 class ViewInterface {
     get Component() {
         if(this._element === null) {
@@ -26,14 +27,14 @@ class DOMcomponentInstance extends ViewInterface {
                 this._type = componentType.trim();
                 this._element = document.createElement(componentType);
                 break;
-            case 'function': 
-                this._element = new componentType();
-                this._type = element.type;
-                break;
-            case 'object':
-                this._element = componentType; 
-                this._type = componentType.type;
-                break;
+            // case 'function': 
+            //     this._element = new componentType();
+            //     this._type = element.type;
+            //     break;
+            // case 'object':
+            //     this._element = componentType; 
+            //     this._type = componentType.type;
+            //     break;
             default: throw "Incorrect component type. It must be a string";
         }
     }
@@ -104,6 +105,12 @@ class DOMcomponentInstance extends ViewInterface {
 
 let componentCache = new Map()
 
+/* 
+Базовый компонент. 
+Определяет функционал отрисовки,
+назначает уникальный идентификатор всем компонентам.
+Создает и хранит отображение компонента с помощью viewInterface
+*/
 class VirtualComponent {
     constructor(    type,         
                     props,       // Атрибуты этого компонента
@@ -116,12 +123,16 @@ class VirtualComponent {
     }
 
     render() {
-        this.props._uniqIdentifier = Math.random()*1000000000;
+        this.props._uniqIdentifier = Math.floor(Math.random()*100000000000);
         this.view = new this.viewInterface(this); // Create new dom element
         return this.view.Component;
     }
 
-    update() {
+    // TODO необходимо держать в памяти виртуальную копию дерева компонентов
+    // И вызывать рекурсивно update у всех детей компонента
+    // В случае если свойства компонента изменились пересоздаем его, добавляя всех детей вызвав у них update
+    // upadte возвращает сам компонент (тот же или модифицированный)
+    update() { // Перерисовывает всех детей компонента
         const newElement = new this.viewInterface(this);
         if(this.view.Component.isEqualNode(newElement.Component)) {
             console.info("Nothing to change in element");
