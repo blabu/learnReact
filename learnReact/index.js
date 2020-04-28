@@ -68,7 +68,9 @@ window.onload = ()=> {
 
     const s = new component("Hello world", blockGreen);
 
-    Render(new component(CreateVirtualComponent('div',null,[container1,container1,div]),
-    s,
-    new component(null)), document.getElementById("root"));
+    Render(new component(
+        CreateVirtualComponent('div',null,[container1,container1,div]),
+        s,
+        new component(null)), document.getElementById("root"),
+    );
 };
