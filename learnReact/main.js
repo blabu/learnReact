@@ -1,88 +1,48 @@
 "use strict";
 
-// Интерфейс создания виджетов (реальных компонентов) для отрисовки 
-class ViewInterface {
-    get Component() {
-        if(this._element === null) {
-            throw "Component did not created";
-        }
-        return this._element;
-    }
-}
+// Асоциативный массив который хранит все отображения
+// Реальные елементы дом дерева
+// В качестве ключа _uniqIdentifier
+const ViewMap = new Map();
+//Хранилище уникальных виртуальных компонентов
+let VirtualDom = new Map();
 
-class DOMcomponentInstance extends ViewInterface {
-    constructor ( virtualComponent ) {
-        super(virtualComponent);
-        this._createRootElement(virtualComponent.type);
-        console.debug("Create instance component ", this._type);
-        Object.keys(virtualComponent.props).filter(attrName=>attrName!="children").forEach(attrName => {
-            this._appendProperty(attrName, virtualComponent.props[attrName]);
-        });
-        this._appendChildren(virtualComponent.props.children);
+// Отрисовка реального dom дерева
+class BuildTree {
+    constructor(rootComponent) {
+        this.root = rootComponent;
     }
 
-    _createRootElement(componentType) {
-        switch(typeof componentType) {
-            case 'string':
-                this._type = componentType.trim();
-                this._element = document.createElement(componentType);
-                break;
-            // case 'function': 
-            //     this._element = new componentType();
-            //     this._type = element.type;
-            //     break;
-            // case 'object':
-            //     this._element = componentType; 
-            //     this._type = componentType.type;
-            //     break;
-            default: throw "Incorrect component type. It must be a string";
-        }
-    }
-
-    _appendChildren(children) {
-        if(children === null) {
-            console.debug("It is emty children list for component", this._type);
-            return;
-        }
-        switch(typeof children) {
-            case 'string':
-                console.debug(`Append inner html ${children} into ${this.type}`);
-                this._element.innerHTML += children;
-                break;
-            case 'object':
-                try {
-                    children.forEach(element => {
-                        if(typeof element === 'string') {
-                            console.debug(`Append inner html ${element} into ${this._type}`);
-                            this._element.innerHTML += element;
-                            return;
-                        }
-                        this._element.appendChild(element.render());
-                    });
-                } catch(e) {
-                    console.warn(e);
+    // @param parent - docuent.node
+    // @param children - array of VirtualComponents (children this parent node)
+    _addChildren(parent, children) {
+        if(children instanceof Array) {
+            children.forEach(childElement => {
+                if(typeof childElement === 'string' || typeof childElement === 'number') {
+                    parent.appendChild(document.createTextNode(childElement));
+                    return;
                 }
-                break;
-            default: throw `Incorrect type ${typeof children} of children ${children} for component ${this._type}`;
+                parent.appendChild(ViewMap.get(childElement.props._uniqIdentifier));
+            });
         }
     }
 
-    _appendProperty(key, value) {
+    _appendProperty(_element, key, value) {
         switch(key) {
             case 'className':
                 const values = value.split(' ');  
-                this._element.classList.remove(...values)
-                this._element.classList.add(...values);
+                _element.classList.remove(...values)
+                _element.classList.add(...values);
                 break;
             case 'id':
-                this._element.id = value.trim();
+                _element.id = value.trim();
                 break;
             case 'callbacks': 
             // argument must be an object:
             // with key - event name like click or mouseover
             // and value - function handler for this event
                 Object.keys(value).forEach((eventName)=>{
-                    this._element.addEventListener(eventName.trim(), value[eventName]);
+                    _element.addEventListener(eventName.trim(), value[eventName]);
                 });
                 break;
                 case 'styles': 
@@ -95,84 +55,179 @@ class DOMcomponentInstance extends ViewInterface {
                         const styleName = style.replace(reg, str=>"-"+str.toLowerCase())
                         allStyles.push(`${styleName}:${value[style]}`)
                     })
-                    this._element.setAttribute("style",allStyles.join(";"))
+                    _element.setAttribute("style",allStyles.join(";"))
                     break;
             default:
-                this._element.setAttribute(key,value);
+                _element.setAttribute(key,value);
         }
+    }
+
+    build() {
+        this.root.forEach(component => {
+            if(typeof component === 'string' || typeof component === 'number') {
+                return;
+            }
+            if(!component.isChangeChildList && 
+               !component.isChangeProp &&
+                ViewMap.has(component.props._uniqIdentifier)) {
+                return;
+            }
+            component.isChangeChildList = false;
+            component.isChangeProp = false
+            if(component._parent != null) ViewMap.delete(component._parent.props._uniqIdentifier);
+            const element = document.createElement(component.type);
+            console.debug(`Create dom element ${component.type} and key ${component.props.key}`);
+            Object.keys(component.props).forEach(attrName => {
+                this._appendProperty(element, attrName, component.props[attrName]);
+            });
+            this._addChildren(element, component._children);
+            ViewMap.set(component.props._uniqIdentifier, element);
+        });
+        ViewMap.get(this.root.props._uniqIdentifier).normalize();
+        return ViewMap.get(this.root.props._uniqIdentifier);
     }
 }
 
-let componentCache = new Map()
+class ComponentInterface {
+    forEach(callback) {
+        throw "Not implemented yet";
+    }
 
-/* 
-Базовый компонент. 
-Определяет функционал отрисовки,
-назначает уникальный идентификатор всем компонентам.
-Создает и хранит отображение компонента с помощью viewInterface
-*/
-class VirtualComponent {
-    constructor(    type,         
+    addChildren(...children) {
+        throw "Not implemented yet";
+    }
+}
+
+// Виртуальное дерево компонентов 
+// ======================================
+// Базовый компонент. 
+// Определяет функционал отрисовки,
+// назначает уникальный идентификатор всем компонентам.
+// Создает и хранит отображение компонента с помощью viewInterface
+class VirtualComponent extends ComponentInterface {
+    type = "";  // Тип компонента
+    props = {}; // Свойства компонента
+    _parent = null; // Parent virtual component. If null this is root
+    _children = []; // Children is an array of virtual components
+    isChangeProp = true;
+    isChangeChildList = true;
+    constructor(    type,        // Тип компонента
                     props,       // Атрибуты этого компонента
-                    children     // Массив детей этого компонента
+                    children     // Массив детей этого компонента 
     ){
+        super();
         this.type = type;
         this.props = props || {};
-        this.props.children = children;
-        this.viewInterface = DOMcomponentInstance;
+        if(typeof props !== 'object') {
+            console.error("Invalid props type. It must be an object");
+            this.props = {};
+        }
+        //_uniqIdentifier - is a props that bind real dom elemets and virualComponent
+        this.props._uniqIdentifier = Math.floor(Math.random()*0xFFFFFFFFFFFFF);
+        children instanceof Array?this.addChildren(...children):this.addChildren(children);
     }
 
-    render() {
-        this.props._uniqIdentifier = Math.floor(Math.random()*100000000000);
-        this.view = new this.viewInterface(this); // Create new dom element
-        return this.view.Component;
+    // перебор всего дерева виртуалльных елементов начиная с this
+    forEach(callback) {
+        this._children.forEach(child => {
+            if(child instanceof VirtualComponent) {
+                child.forEach(callback);
+            } else {
+                callback(child);
+            }
+        });
+        callback(this);
     }
 
-    // TODO необходимо держать в памяти виртуальную копию дерева компонентов
+    addChildren(...children) {
+        children.forEach(e => {
+            if(typeof e === 'string' || typeof e === 'number') {
+                this._children.push(e);
+                return
+            }
+            if(e === null) return
+            e._parent = this;
+            this._children.push(e);
+        });
+    }
+
+    compareChildList(originChildList) {
+        if(this._children.length != origin._children.length) {
+            return true;
+        }
+        let isChanged = false;
+        this._children.forEach((child,idx) => {
+            if(child instanceof VirtualComponent) {
+                isChanged = child.compareChildList(originChildList[idx]);
+            } else if(child !== originChildList[idx]) {
+                isChanged = true;
+            }
+        })
+        return isChanged;
+    }
+
+    compareProps(originProps) {
+        let isChanged = false;
+        Object.keys(this.props).forEach(prop=>{
+            if(this.props[prop] !== originProps[prop]) {
+                isChanged = true;
+            }
+        });
+        return isChanged;
+    }
+
     // И вызывать рекурсивно update у всех детей компонента
     // В случае если свойства компонента изменились пересоздаем его, добавляя всех детей вызвав у них update
     // upadte возвращает сам компонент (тот же или модифицированный)
-    update() { // Перерисовывает всех детей компонента
-        const newElement = new this.viewInterface(this);
-        if(this.view.Component.isEqualNode(newElement.Component)) {
-            console.info("Nothing to change in element");
-            return this;
-        }
-        var isUpdated = false;
-        const parentNode = this.view.Component.parentElement;
-        for(let i=0; i<parentNode.children.length; i++) {
-            if(parentNode.children[i].getAttribute("_uniqIdentifier") == this.props._uniqIdentifier) {
-                console.log(parentNode.children[i].getAttribute("_uniqIdentifier"));
-                parentNode.replaceChild(newElement.Component, parentNode.children[i]);
-                isUpdated=true;
+    update() {
+        origin = VirtualDom.get(this.props._uniqIdentifier);
+        this.isChangeChildList = this.compareChildList(origin._children);
+        this.isChangeProp = this.compareProps(origin.props);
+        console.log(`is changed props ${this.isChangeProp}, is changed child list ${this.isChangeChildList}`);
+        VirtualDom.set(this.props._uniqIdentifier, Object.assign({}, this));
+        new BuildTree(this._parent).build();
+    }
+    // Сохраняем наш виртуальный компонент в виртуальное дом дерево
+    render() {
+        this.forEach((e)=> {
+            if (e instanceof VirtualComponent &&
+                !VirtualDom.has(e.props._uniqIdentifier)) {
+                VirtualDom.set(e.props._uniqIdentifier, Object.assign({}, e));
             }
-        }
-        if(isUpdated) this.view = newElement;
+        });
         return this;
     }
 }
 
-//export 
-function Render(element, container) {
-    container.appendChild(element.render());
+function Render(container, element) {
+    console.log(element);
+    const dom = new BuildTree(element.render());
+    container.appendChild(dom.build(element.props._uniqIdentifier));
 }
 
-//export 
 function CreateVirtualComponent (
     type,
     props = {}, // Атрибуты этого компонента
     children = []     // Массив детей этого компонента
 ) {
     console.debug("Create virtual component ", type, ((props && props.key)?` and key ${props.key}.`:"."));
-    if (props && props.key) {
-        if(componentCache.has(props.key)) {
-            console.debug(`Component ${type} with key ${props.key} finded in cache`);
-            return componentCache.get(props.key);
+    return new VirtualComponent(type,props,children);
+}
+
+function CopyVirtualComponent(origin) {
+    if(origin instanceof VirtualComponent) {
+        let childrenList = [];
+        if(origin._children instanceof Array) {
+            childrenList = origin._children.map(child => {
+                if(child instanceof VirtualComponent) return CopyVirtualComponent(child);
+                if(typeof child === 'object') return Object.assign({}, child);
+                return child;
+            });
         }
-        const e = new VirtualComponent(type,props,children);
-        componentCache.set(props.key, e);
-        return e;
+        console.log(`Copy component ${origin.props.key}`)
+        return new VirtualComponent(origin.type, Object.assign({},origin.props), childrenList);
+    } else {
+        console.error("Origin is not a virtual component instance");
+        return null;
     }
-    const e = new VirtualComponent(type,props,children);
-    return e;
 }

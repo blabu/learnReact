@@ -5,6 +5,7 @@
 class component extends VirtualComponent {
     constructor(...children) {
         super("div", {
+            key: "wraper",
             className: "wrap",
         }, children);
     }
@@ -16,6 +17,13 @@ window.onload = ()=> {
         {
             key: "blue",
             className: "block blue",
+            callbacks: {
+                click: (e)=>{
+                    console.log("Click on blue");
+                    blockBlue.props = {...blockBlue.props, className: "block red"};
+                    blockBlue.update();
+                }
+            },
         },
         ["Blue block"]
     );
@@ -30,7 +38,7 @@ window.onload = ()=> {
             key: "red",
             className: "block red",
         },
-        ["Red block"]
+        ["Red block\n", 10]
     );
     const blockGreen = CreateVirtualComponent(
         'div',
@@ -54,23 +62,30 @@ window.onload = ()=> {
         CreateVirtualComponent('div', {
             className: "wrap",
             callbacks: {
-                click: ()=>{
-                    div.props.children.push(blockRed);
+                click: (e)=>{
+                    div.addChildren(CopyVirtualComponent(blockBlue));
+                    console.log(div);
                     div.update();
+                    console.log(e.target.getAttribute("_uniqidentifier"));
                 }
             },
         }, [
             blockGreen,
             blockRed,
             blockBlue,
+            blockGreen
         ]),
     ]);
 
     const s = new component("Hello world", blockGreen);
 
-    Render(new component(
-        CreateVirtualComponent('div',null,[container1,container1,div]),
-        s,
-        new component(null)), document.getElementById("root"),
-    );
+    //Render(document.getElementById("root"),container1);
+    Render(
+        document.getElementById("root"),
+        new component(
+            CreateVirtualComponent('div',{key: "customDiv"},[
+                div,
+            ]),
+            CopyVirtualComponent(s))
+        );
 };
