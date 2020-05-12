@@ -1,0 +1,76 @@
+/* TODO: your styles goes here*/
+
+.container {
+  display: flex;
+  width: 95%;
+  height: auto;
+  flex-direction: column;
+  position: relative;
+  left: 5%;
+}
+
+.fileNode {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+}
+.fileNode:hover {
+    background-color: lightgrey;
+}
+
+.fileNodeDescription {
+    font-size: .6rem;
+}
+
+.folderIcon {
+    color: orange;
+}
+
+.fileIcon {
+    color: grey;
+}
+
+.contentHidden {
+    display: none;
+}
+
+.contextMenu {
+    margin: 0;
+    padding: 0;
+    display: none;
+    position: fixed;
+    width: 115px;
+    height: auto;
+    background-color: white;
+    color: black;
+    box-shadow: 1px 1px 2px lightslategrey;
+    z-index: 2;
+}
+
+.contextMenu.active {
+    display: block;
+}
+
+.contextMenuItems {
+    font-size: .6rem;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.contextMenuItems:hover {
+    background-color: lightgray;
+}
+
+body {
+    display: block;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 80%;
+    border: solid 1px lightslategrey;
+    box-shadow: 2px, 2px, 4px, lightslategrey;
+}
+
