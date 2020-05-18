@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import './index.css'
 import Menu from './Menu'
 import Auth from './Auth'
-import Home from './routes/Home'
+import TablesUsageExample from './routes/TablesUsageExample'
 import Map from './routes/Map'
 import Properies from './routes/Properies'
 import Images from './routes/Images'
@@ -25,19 +25,19 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.children = [
-            {name:'Home', url:'/home', component:<Home/>, icon:
+            {name:'Home', url:'/home', component:<TablesUsageExample/>, icon:
                 <svg className="bi bi-house-door" width="2em" height="2em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path fillRule="evenodd" d="M7.646 1.146a.5.5 0 01.708 0l6 6a.5.5 0 01.146.354v7a.5.5 0 01-.5.5H9.5a.5.5 0 01-.5-.5v-4H7v4a.5.5 0 01-.5.5H2a.5.5 0 01-.5-.5v-7a.5.5 0 01.146-.354l6-6zM2.5 7.707V14H6v-4a.5.5 0 01.5-.5h3a.5.5 0 01.5.5v4h3.5V7.707L8 2.207l-5.5 5.5z" clipRule="evenodd"/>
                     <path fillRule="evenodd" d="M13 2.5V6l-2-2V2.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5z" clipRule="evenodd"/>
                 </svg>
             },
-            {name:'Reports', url:'/reports', component:<Home/>, icon:
+            {name:'Reports', url:'/reports', component:<TablesUsageExample/>, icon:
             <svg className="bi bi-file-text" width="2em" height="2em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path fillRule="evenodd" d="M4 1h8a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V3a2 2 0 012-2zm0 1a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V3a1 1 0 00-1-1H4z" clipRule="evenodd"/>
                 <path fillRule="evenodd" d="M4.5 10.5A.5.5 0 015 10h3a.5.5 0 010 1H5a.5.5 0 01-.5-.5zm0-2A.5.5 0 015 8h6a.5.5 0 010 1H5a.5.5 0 01-.5-.5zm0-2A.5.5 0 015 6h6a.5.5 0 010 1H5a.5.5 0 01-.5-.5zm0-2A.5.5 0 015 4h6a.5.5 0 010 1H5a.5.5 0 01-.5-.5z" clipRule="evenodd"/>
             </svg>
             },
-            {name:'ObjectList', url:'/objects', component:<Home/>, icon:
+            {name:'ObjectList', url:'/objects', component:<TablesUsageExample/>, icon:
                 <svg className="bi bi-layout-text-sidebar-reverse" width="2em" height="2em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path fillRule="evenodd" d="M2 1h12a1 1 0 011 1v12a1 1 0 01-1 1H2a1 1 0 01-1-1V2a1 1 0 011-1zm12-1a2 2 0 012 2v12a2 2 0 01-2 2H2a2 2 0 01-2-2V2a2 2 0 012-2h12z" clipRule="evenodd"/>
                     <path fillRule="evenodd" d="M5 15V1H4v14h1zm8-11.5a.5.5 0 00-.5-.5h-5a.5.5 0 000 1h5a.5.5 0 00.5-.5zm0 3a.5.5 0 00-.5-.5h-5a.5.5 0 000 1h5a.5.5 0 00.5-.5zm0 3a.5.5 0 00-.5-.5h-5a.5.5 0 000 1h5a.5.5 0 00.5-.5zm0 3a.5.5 0 00-.5-.5h-5a.5.5 0 000 1h5a.5.5 0 00.5-.5z" clipRule="evenodd"/>
@@ -71,7 +71,7 @@ class App extends React.Component {
 
     render() {
         return (
-            <div className='container'>
+            <div className='container shadow p-3 mb-5 text-wrap'>
                 <UserState value={ {isLogin: false, key:this.name} }>
                     <AppWrapper children={this.children}/>
                 </UserState>

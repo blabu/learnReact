@@ -8,15 +8,16 @@ import Logo from '../public/iconLight.png'
 function NavItem({name, url, onClick, className="", isActive=false, icon=null}) {
     const style = {
         display: "flex",
-        alignItems: "center"
+        alignItems: "center",
+        justifyContent: "center"
     }
     return (
         <div className="nav-item" style={style}>
-            <div className="d-sm-block d-md-none d-lg-block">
-                {icon}
-            </div>
             <Link className={`nav-link ${isActive?"active":""} ${className}`}
-                  onClick={onClick} to={url}>
+                onClick={onClick} to={url}>
+                    <div className="d-sm-block d-md-none d-lg-block">
+                        {icon}
+                    </div>
                     {name}
             </Link>
         </div>
@@ -35,8 +36,8 @@ function Menu({children}) {
     });
     return(
         <Router>
-        <nav className="navbar navbar-expand-md nav-pills nav-fill bg-white">
-            <img  className="navbar-brand" style={{width:"3rem"}} src={Logo}/>
+        <nav className="navbar navbar-expand-md nav-pills nav-fill bg-white sticky-top">
+            <img  className="navbar-brand" style={{width:"2.5em"}} src={Logo}/>
             <button className="navbar-toggler"
                     onClick = {()=>{
                         if(!open) document.getElementById('navBarContent').classList.add("show");
@@ -45,8 +46,8 @@ function Menu({children}) {
                     }}
             >
                 {
-                    open ? <span style={{fontSize:"2rem"}}>&times;</span>:
-                           <span style={{fontSize:"2rem"}}>&#9776;</span>
+                    open ? <span style={{fontSize:"2.5em"}}>&times;</span>:
+                           <span style={{fontSize:"2em"}}>&#9776;</span>
                 }
             </button>
             <div className="collapse navbar-collapse" id="navBarContent">

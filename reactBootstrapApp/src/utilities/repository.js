@@ -77,8 +77,22 @@ async function Request(url, method="GET", data=null) {
     }
 }
 
+async function LoadImage(url) {
+    return fetch(url)
+    .then(response=> response.blob())
+    .then(blob => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.addEventListener('load', ()=>resolve(reader.result));
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    });
+}
+
 export {
     Request,
+    LoadImage,
     GetFetch as Get,
     PostFetch as Post,
     ResolveAfter, 

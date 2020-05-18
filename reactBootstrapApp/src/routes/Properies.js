@@ -1,7 +1,8 @@
 import React from 'react'
-import {Get, STAT, ResolveAfter} from '../repository';
+import {Get, STAT, ResolveAfter} from '../utilities/repository';
 import {UserContext} from '../context/UserState';
 import {LoaderRing as Loader} from '../Loader/Loader'
+import Alert from '../Alert'
 
 class Properies extends React.Component {
     constructor(props) {
@@ -16,19 +17,19 @@ class Properies extends React.Component {
                 nowConnected:0,
                 maxConcurentConnection:0,
                 allConnection:0,
-                allIP:[],
-            }
+                allIP:[]
+            },
+            error: ""
         }
         console.debug("In properties", this.context)
     }
 
     componentWillMount() {
-        console.debug("In mounted properties", this.context)
-        this.updateServerStat();
+        console.debug("In will mount properties", this.context)
     }
 
     componentDidMount() {
-        console.debug("In mounted properties", this.context)
+        console.debug("In did mount properties", this.context)
         this.updateServerStat();
     }
 
@@ -37,16 +38,25 @@ class Properies extends React.Component {
         ResolveAfter(1000).then(()=>
         Get(STAT, {key:"key", value: this.context.state.key}))
         .then(resp => {
-                this.setState({...this.state, isLoading: false, serverStatus:{...resp}});
+                this.setState({...this.state, serverStatus:{...resp}});
         })
-        .catch(err => console.warn(err));
+        .catch(err => {
+            this.setState({...this.state, error: `${err.name}:${err.message}`});
+            console.warn(err)
+        })
+        .finally(()=> this.setState({...this.state, isLoading: false}));
     }
 
     render() {
         console.debug("In render properties ", this.context);
         return this.state.isLoading ? <Loader/> :
             (<div>
-                {JSON.stringify(this.state.serverStatus)}
+                <div className={this.state.error.length>0?"d-block":"d-none"} key="error">
+                    <Alert head={this.state.error}/>
+                </div>
+                <div className={this.state.error.length>0?"d-none":"d-block"}>
+                    {JSON.stringify(this.state.serverStatus)}
+                </div>
             </div>);
     }
 }

@@ -1,6 +1,6 @@
 import React from 'react'
 import {LoaderRing as Loader} from './Loader/Loader'
-import { ResolveAfter, Get, CHECK_KEY } from './repository'
+import { ResolveAfter, Get, CHECK_KEY } from './utilities/repository'
 import {UserContext} from './context/UserState'
 import Logo from '../public/iconLight.png'
 import 'bootstrap/dist/css/bootstrap.css'
